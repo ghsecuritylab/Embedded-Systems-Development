@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Rename resource &apos;MultiBox_Klimasteuerung/Application/User/Main/PanasonicAC_WiredControl.c&apos; to &apos;wired_remote_control.c&apos;" description="Rename resource &apos;PanasonicAC_WiredControl.c&apos;" flags="7" id="org.eclipse.ltk.core.refactoring.rename.resource" input="Application/User/Main/PanasonicAC_WiredControl.c" name="wired_remote_control.c" stamp="1498038757966" updateReferences="true"/>
+</session>

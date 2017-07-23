@@ -85,6 +85,13 @@ struct Parameter ListEntry9_Minutes;
 struct Parameter ListEntry9_Temperature;
 struct Parameter ListEntry9_Repeat;
 
+struct Parameter *ZUSTAND_Power1;
+struct Parameter *ZUSTAND_Power2;
+struct Parameter *ZUSTAND_Power3;
+struct Parameter *ZUSTAND_Power4;
+struct Parameter *ZUSTAND_Abgasabsaugung;
+struct Parameter *ZUSTAND_Schnellstopp;
+
 
 
 //struct ParameterGroup ParameterGroup_SensorDrossel;

@@ -12,6 +12,7 @@ struct RingMemory TemperaturUnit2;
 struct RingMemory TemperaturMotor;
 struct RingMemory TemperaturCAN;
 
+struct RingMemory *IST_Nothalt;
 
 void Project_Init_RingMemories();
 

@@ -20,7 +20,7 @@ void HAL_CAN_MspInit(CAN_HandleTypeDef *CanHandle) {
   GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
   GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
-  GPIO_InitStruct.Alternate =  CANx_TX_AF;
+  GPIO_InitStruct.Alternate = CANx_TX_AF;
 
   HAL_GPIO_Init(CANx_TX_GPIO_PORT, &GPIO_InitStruct);
 

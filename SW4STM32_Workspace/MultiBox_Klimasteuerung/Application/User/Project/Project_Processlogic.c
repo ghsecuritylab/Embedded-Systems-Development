@@ -17,6 +17,8 @@
 #include "Parameter.h"
 #include "Data.h"
 
+struct clickBoard * Board_DMX_Steckdosen;
+
 /* Temperature Values defined in "Project_Page_Main_1.c"*/
 extern float tRaumtemperatur;
 extern float tAussentemperatur;
@@ -34,7 +36,7 @@ extern float *pTC_IstTemperature1;
 extern float *pTC_IstTemperature2;
 extern uint8_t activeMode1;
 extern uint8_t activeMode2;
-extern
+
 
 /* CAN Variables */
 extern float tMotor_CAN;
@@ -51,8 +53,9 @@ void Project_ProcessLogic_Init_Clickboards() {
 //    Board_ADC_1 = Create_clickBoard(4, 0,"ADC", "");
 //    Board_EXPAND_4 = Create_clickBoard(6,0,"EXP4","");
 //	  Board_PWM_1 = Create_clickBoard(8,0,"PWM","");
+	Board_DMX_Steckdosen = Create_clickBoard(8, 0, "DMX - Steckdosen", "");
+	DMXclick_Select(Board_DMX_Steckdosen);
 
-	DMX_init();
 }
 
 void Project_ProcessLogic_Init_Variables() {
@@ -73,6 +76,9 @@ void Project_ProcessLogic_Configure_Clickboards() {
 	//EXPAND4click_Select(Board_EXPAND_4);
 	//PWMclick_Select(Board_PWM_1);
 	//PWMclick_WriteConfig(0,0,0,PWM_CONFIG2_OUTCH_ONACK,PWM_CONFIG2_OUTDRV_TP);
+
+	Update_Clickboard(Board_DMX_Steckdosen);
+	DMX_init();
 }
 
 static uint8_t ErrorFlag;
@@ -175,38 +181,42 @@ void Project_ProcessLogic_ReadInputs() {
 			}
 
 			/* XXX CAN Message */
+
 			uint8_t *pTemp1 = (uint8_t*) pTC_IstTemperature1;
 			uint8_t *pTemp2 = (uint8_t*) pTC_IstTemperature2;
 			uint8_t CANData[8];
 
+			// T(soll)1, T(soll)2
 			CANData[0] = SollVorgabe1; // Soll Temperature specification
 			CANData[1] = SollVorgabe2;
 
+			// T(ist)1, T(ist)2
 			CANData[2] = pTemp1[0];
 			CANData[3] = pTemp1[1];
-
 			CANData[4] = pTemp2[0];
 			CANData[5] = pTemp2[1];
 
+			// 6.0-6.2: Mode1, 6.3-6.5: Mode2, 6.6: 230v-1, 6.7: 230v-2
 			CANData[6] = 0x00;
-			CANData[6]|= (activeMode1          & 0x1)  << 7;
-			CANData[6]|= (activeMode1          & 0x1)  << 6;
-			CANData[6]|= (activeMode1          & 0x1)  << 5;
-			CANData[6]|= (activeMode2          & 0x1)  << 4;
-			CANData[6]|= (activeMode2          & 0x1)  << 3;
-			CANData[6]|= (activeMode2          & 0x1)  << 2;
-			CANData[6]|= (((uint8_t)ParameterRead(ZUSTAND_1S4_Netzteile,Value))        & 0x1)  << 1;
-			CANData[6]|= (0x00 & 0x1)  << 0;
+			CANData[6]|= (activeMode1  & 0x1)  << 7;
+			CANData[6]|= (activeMode1  & 0x1)  << 6;
+			CANData[6]|= (activeMode1  & 0x1)  << 5;
+			CANData[6]|= (activeMode2  & 0x1)  << 4;
+			CANData[6]|= (activeMode2  & 0x1)  << 3;
+			CANData[6]|= (activeMode2  & 0x1)  << 2;
+			CANData[6]|= (((uint8_t)ParameterRead(ZUSTAND_Power1,Value))         & 0x1) << 1;
+			CANData[6]|= (((uint8_t)ParameterRead(ZUSTAND_Power2,Value))  		 & 0x1) << 0;
 
+			// 7.0: 230v-3, 7.1: 230v-4, 7.2-7.4: Box status, 7.5: B_error, 7.6: B_schnellstopp, 7.7: Status_exhaustGasVentilator
 			CANData[7] = 0x00;
-			CANData[7]|= (((uint8_t)ParameterRead(ZUSTAND_1S1_PumpeKW,Value))          & 0x1)  << 7;
-			CANData[7]|= (((uint8_t)ParameterRead(ZUSTAND_1S1_PumpeKW,Value))          & 0x1)  << 6;
-			CANData[7]|= (((uint8_t)ParameterRead(ZUSTAND_1S1_PumpeKW,Value))          & 0x1)  << 5;
-			CANData[7]|= (((uint8_t)ParameterRead(ZUSTAND_1S1_PumpeKW,Value))          & 0x1)  << 4;
-			CANData[7]|= (((uint8_t)ParameterRead(ZUSTAND_1S1_PumpeKW,Value))          & 0x1)  << 3;
-			CANData[7]|= (((uint8_t)RingMemory_getVal(IST_Nothalt,0))          		& 0x1)  << 2;
-			CANData[7]|= (((uint8_t)ParameterRead(ZUSTAND_3S1_Schnellstopp,Value))  & 0x1)  << 1;
-			CANData[7]|= (((uint8_t)ParameterRead(ZUSTAND_2S4_Abgasabsaugung,Value))& 0x1)  << 0;
+			CANData[7]|= (((uint8_t)ParameterRead(ZUSTAND_Power3,Value))         & 0x1) << 7;
+			CANData[7]|= (((uint8_t)ParameterRead(ZUSTAND_Power4,Value))         & 0x1) << 6;
+			CANData[7]|= (Machinestate & 0x1)  << 5;
+			CANData[7]|= (Machinestate & 0x1)  << 4;
+			CANData[7]|= (Machinestate & 0x1)  << 3;
+			CANData[7]|= (((uint8_t)RingMemory_getVal(IST_Nothalt,0))          	 & 0x1) << 2;
+			CANData[7]|= (((uint8_t)ParameterRead(ZUSTAND_Schnellstopp,Value))   & 0x1) << 1;
+			CANData[7]|= (((uint8_t)ParameterRead(ZUSTAND_Abgasabsaugung,Value)) & 0x1) << 0;
 
 			CAN_send(0x6AF, 1, 500, sizeof(CANData), CANData);
 		}

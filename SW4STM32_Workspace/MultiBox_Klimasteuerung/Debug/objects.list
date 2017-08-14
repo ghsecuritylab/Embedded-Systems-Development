@@ -75,6 +75,7 @@
 "Application/User/Main/stm32f7xx_it.o"
 "Application/User/Main/temperature_control.o"
 "Application/User/Main/time_switch.o"
+"Application/User/Main/wired_remote_control.o"
 "Application/User/Main/STemWin-Conf/GUIConf.o"
 "Application/User/Main/STemWin-Conf/LCDConf.o"
 "Application/User/Memory/Lookup/Lookup.o"

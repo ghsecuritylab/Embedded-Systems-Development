@@ -72,7 +72,7 @@ static void IR_RX_Pin_Init(void);
 static void IR_RX_Timer_Init(void);
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin);
 
-extern void Error_Handler(void);
+//extern void Error_Handler(void);
 
 /* Private functions ---------------------------------------------------------*/
 /** \brief

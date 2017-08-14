@@ -6,20 +6,20 @@
 	</section>
 	<section name="org.eclipse.ui.texteditor.FindReplaceDialog">
 		<item value="false" key="isRegEx"/>
-		<item value="SollVorgabe1" key="selection"/>
+		<item value="IR_Message_Pulses" key="selection"/>
 		<item value="false" key="casesensitive"/>
 		<item value="false" key="incremental"/>
 		<item value="true" key="wrap"/>
 		<item value="false" key="wholeword"/>
 		<list key="findhistory">
-			<item value="SollVorgabe"/>
-			<item value="Machinestate"/>
-			<item value="konfig"/>
-			<item value="activeMode"/>
-			<item value="pTC_IstTemperature"/>
-			<item value="CANData"/>
-			<item value="pTC_IstTemperature1"/>
-			<item value="pWTemp"/>
+			<item value="IR_Message_Pulses"/>
+			<item value="wired_control_ConvertPulsesToBits"/>
+			<item value="Error_Handler"/>
+			<item value="PanasonicAC_ConvertToPulses"/>
+			<item value="IR_TX_Message"/>
+			<item value="PANASONIC_AC_LOW_PAUSE"/>
+			<item value="sprintf"/>
+			<item value="wired_control_CalcChecksum"/>
 		</list>
 		<list key="replacehistory">
 			<item value="SollVorgabe1"/>

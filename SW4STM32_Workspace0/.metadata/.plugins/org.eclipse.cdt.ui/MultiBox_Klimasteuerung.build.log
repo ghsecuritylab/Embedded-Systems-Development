@@ -1,0 +1,6 @@
+11:09:26 **** Incremental Build of configuration Debug for project MultiBox_Klimasteuerung ****
+make all 
+make: Nothing to be done for `all'.
+
+11:09:29 Build Finished (took 3s.127ms)
+

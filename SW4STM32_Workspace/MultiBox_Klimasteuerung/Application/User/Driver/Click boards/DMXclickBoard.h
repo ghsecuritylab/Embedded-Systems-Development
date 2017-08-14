@@ -35,7 +35,7 @@ extern uint8_t DMX_Frame[DMX_FRAME_LENGTH];
 void DMX_init(void);							// Initialize the UART module to 250 Kbaud 8N2
 void DMX_loop(void);							// insert in main-loop, sends periodically the dmx frame
 void DMX_setSlot(uint16_t addr, uint8_t value);	// change DMX frame
-
+void DMXclick_Select(struct clickBoard * Board);
 
 #ifdef __cplusplus
 }

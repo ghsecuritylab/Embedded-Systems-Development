@@ -8,21 +8,24 @@ C_SRCS += \
 ../Application/User/Main/main.c \
 ../Application/User/Main/stm32f7xx_it.c \
 ../Application/User/Main/temperature_control.c \
-../Application/User/Main/time_switch.c 
+../Application/User/Main/time_switch.c \
+../Application/User/Main/wired_remote_control.c 
 
 OBJS += \
 ./Application/User/Main/PanasonicAC_IR.o \
 ./Application/User/Main/main.o \
 ./Application/User/Main/stm32f7xx_it.o \
 ./Application/User/Main/temperature_control.o \
-./Application/User/Main/time_switch.o 
+./Application/User/Main/time_switch.o \
+./Application/User/Main/wired_remote_control.o 
 
 C_DEPS += \
 ./Application/User/Main/PanasonicAC_IR.d \
 ./Application/User/Main/main.d \
 ./Application/User/Main/stm32f7xx_it.d \
 ./Application/User/Main/temperature_control.d \
-./Application/User/Main/time_switch.d 
+./Application/User/Main/time_switch.d \
+./Application/User/Main/wired_remote_control.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes

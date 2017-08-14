@@ -17,7 +17,7 @@
 #include "Parameter.h"
 #include "Data.h"
 
-struct clickBoard * Board_DMX_Steckdosen;
+//struct clickBoard * Board_DMX_Steckdosen;
 
 /* Temperature Values defined in "Project_Page_Main_1.c"*/
 extern float tRaumtemperatur;
@@ -53,9 +53,10 @@ void Project_ProcessLogic_Init_Clickboards() {
 //    Board_ADC_1 = Create_clickBoard(4, 0,"ADC", "");
 //    Board_EXPAND_4 = Create_clickBoard(6,0,"EXP4","");
 //	  Board_PWM_1 = Create_clickBoard(8,0,"PWM","");
-	Board_DMX_Steckdosen = Create_clickBoard(8, 0, "DMX - Steckdosen", "");
-	DMXclick_Select(Board_DMX_Steckdosen);
 
+	//Board_DMX_Steckdosen = Create_clickBoard(8, 0, "DMX - Steckdosen", "");
+	//DMXclick_Select(Board_DMX_Steckdosen);
+	DMX_init();
 }
 
 void Project_ProcessLogic_Init_Variables() {
@@ -77,8 +78,8 @@ void Project_ProcessLogic_Configure_Clickboards() {
 	//PWMclick_Select(Board_PWM_1);
 	//PWMclick_WriteConfig(0,0,0,PWM_CONFIG2_OUTCH_ONACK,PWM_CONFIG2_OUTDRV_TP);
 
-	Update_Clickboard(Board_DMX_Steckdosen);
-	DMX_init();
+	//Update_Clickboard(Board_DMX_Steckdosen);
+
 }
 
 static uint8_t ErrorFlag;
@@ -146,7 +147,7 @@ void Project_ProcessLogic_ReadInputs() {
 			/* Add Values to Graph-Buffer and save them in Ringmemory */
 			if ((CycleCounter % 1) == 0) {
 				/* Add new Values to Graph-Buffer */
-				graphValues[0] = SollVorgabe * GRAPH_SCALE_Y;
+				graphValues[0] = SollVorgabe1 * GRAPH_SCALE_Y;
 				graphValues[1] = tRaumtemperatur * GRAPH_SCALE_Y;
 				graphValues[2] = tAussentemperatur * GRAPH_SCALE_Y;
 				graphValues[3] = tLuftstrom1 * GRAPH_SCALE_Y;

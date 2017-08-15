@@ -279,24 +279,24 @@ void PanasonicAC_PowerOff(void){
  *  \param	uint8_t *Message: Pointer to Hex-Message which will be converted
  *  \retval	None
  */
-static void PanasonicAC_ConvertToPulses(uint8_t *Message){
-    IR_Message_Pulses[0] = PANASONIC_AC_START_PULSE;
-    IR_Message_Pulses[1] = PANASONIC_AC_START_PAUSE;
+static void PanasonicAC_ConvertToPulses(uint8_t *Message){ 	//send control signal
+    IR_Message_Pulses[0] = PANASONIC_AC_START_PULSE; // 3.4ms
+    IR_Message_Pulses[1] = PANASONIC_AC_START_PAUSE; // 1.7ms
     uint8_t nByte;
     int8_t nBit;
     uint16_t nPulse = 2;
     for(nByte = 0; nByte < 12; nByte++){
         for(nBit = 0; nBit < 8; nBit++){
             if(Message[nByte] & (0x1 << nBit)){
-                IR_Message_Pulses[nPulse++] = PANASONIC_AC_BIT_PULSE;
-                IR_Message_Pulses[nPulse++] = PANASONIC_AC_HIGH_PAUSE;
+                IR_Message_Pulses[nPulse++] = PANASONIC_AC_BIT_PULSE; // 455us
+                IR_Message_Pulses[nPulse++] = PANASONIC_AC_HIGH_PAUSE;// 1.2ms
             }else{
-                IR_Message_Pulses[nPulse++] = PANASONIC_AC_BIT_PULSE;
-                IR_Message_Pulses[nPulse++] = PANASONIC_AC_LOW_PAUSE;
+                IR_Message_Pulses[nPulse++] = PANASONIC_AC_BIT_PULSE; // 455us
+                IR_Message_Pulses[nPulse++] = PANASONIC_AC_LOW_PAUSE; // 380us
             }
         }
     }
-    IR_Message_Pulses[nPulse++] = PANASONIC_AC_BIT_PULSE;
+    IR_Message_Pulses[nPulse++] = PANASONIC_AC_BIT_PULSE; // 455us
 }
 
 /** \brief	Calculates the Checksum (Byte 12) from Byte 1 to 11

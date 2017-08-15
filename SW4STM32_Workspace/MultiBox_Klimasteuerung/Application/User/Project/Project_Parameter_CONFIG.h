@@ -30,6 +30,11 @@ struct Parameter CAN_TEMP_FORMAT;
 struct Parameter CAN_TEMP_FACTOR;
 struct Parameter CAN_TEMP_OFFSET;
 
+struct ParameterGroup ParameterGroup_HardwareSignals;
+struct ParameterGroup ParameterGroup_AnalogSignal;
+struct ParameterGroup ParameterGroup_DigitalSignal;
+struct ParameterGroup ParameterGroup_TerminaSignal;
+
 struct Parameter GraphDispLines;
 
 struct ParameterGroup ParameterGroup_TimeSwitchList;

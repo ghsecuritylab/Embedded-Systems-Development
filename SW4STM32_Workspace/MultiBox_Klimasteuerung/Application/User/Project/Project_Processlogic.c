@@ -258,6 +258,7 @@ void Project_ProcessLogic_Mode_Error() {
 }
 
 void Project_ProcessLogic_CAN_Receive(CAN_HandleTypeDef *CanHandle) {
+	CAN_Rx_flag = 1;
 	union Data Receive;
 	uint32_t uRAW_L = 0;
 	uint32_t uRAW_H = 0;

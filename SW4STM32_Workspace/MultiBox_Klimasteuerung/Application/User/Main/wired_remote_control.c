@@ -11,15 +11,17 @@
 #define WIRED_CONTROL_ID3    0xFCU
 
 /* Wired control Pulse Time in us */
-#define WIRED_CONTROL_START_PULSE    2000U // done
+#define WIRED_CONTROL_START_VOLTAGE    11
 
-#define WIRED_CONTROL_START_PAUSE    1700U
-#define WIRED_CONTROL_BIT_PULSE       455U
+#define WIRED_CONTROL_PAUSE    2M
+//#define WIRED_CONTROL_BIT_PULSE       455U
 
-#define WIRED_CONTROL_LOW_PULSE       380U
-#define WIRED_CONTROL_HIGH_PULSE     1200U
+#define WIRED_CONTROL_LOW_VOLTAGE       4
+#define WIRED_CONTROL_HIGH_VOLTAGE     17
 
 #define PULSE_LENGTH_MAX    196
+
+static uint16_t Wired_Control_Pulse_Buffer[200] = {0};
 
 /* Private macro -------------------------------------------------------------*/
 
@@ -277,24 +279,22 @@ void wired_control_PowerOff(void){
  *  \param	uint8_t *Message: Pointer to Hex-Message which will be converted
  *  \retval	None
  */
-static void wired_control_ConvertToPulses(uint8_t *Message){
-    W_Message_Pulses[0] = WIRED_CONTROL_START_PULSE;
-    W_Message_Pulses[1] = WIRED_CONTROL_START_PAUSE;
+static void wired_control_ConvertToPulses(uint8_t *Message){ //DAC
     uint8_t nByte;
     int8_t nBit;
-    uint16_t nPulse = 2;
+    uint16_t nPulse = 0;
     for(nByte = 0; nByte < 7; nByte++){
         for(nBit = 0; nBit < 8; nBit++){
             if(Message[nByte] & (0x1 << nBit)){
-                W_Message_Pulses[nPulse++] = WIRED_CONTROL_BIT_PULSE;
+                W_Message_Pulses[nPulse++] = WIRED_CONTROL_HIGH_VOLTAGE;
                 //W_Message_Pulses[nPulse++] = WIRED_CONTROL_HIGH_PAUSE;
             }else{
-                W_Message_Pulses[nPulse++] = WIRED_CONTROL_BIT_PULSE;
+                W_Message_Pulses[nPulse++] = WIRED_CONTROL_START_VOLTAGE;
                 //W_Message_Pulses[nPulse++] = WIRED_CONTROL_LOW_PAUSE;
             }
         }
     }
-    W_Message_Pulses[nPulse++] = WIRED_CONTROL_BIT_PULSE;
+    W_Message_Pulses[nPulse++] = WIRED_CONTROL_START_VOLTAGE;
 }
 
 
@@ -330,30 +330,37 @@ static void wired_control_ConvertToPulses(uint8_t *Message){
  *  \param	None
  *  \retval	None
  */
-static void wired_control_ConvertPulsesToBits(void){
-	uint16_t *pRX_Pulse_Buffer = IRclick_GetRXMessagePulseBuffer();
-	uint8_t index = 3;
+static void wired_control_ConvertPulsesToBits(void){ //ADC
+	uint16_t *pWired_RX_Pulse_Buffer = Wired_Control_Pulse_Buffer;
+	uint8_t index = 0;
 	uint8_t byte = 0;
-	for(int i = 0; i<12; i++){
+	for(int i = 0; i<7; i++){
 		for(int j = 0; j<8; j++){
-			if(pRX_Pulse_Buffer[index] > 40){
+			if(pWired_RX_Pulse_Buffer[index] > 14){
 				byte |= 1<<j;
 			}
-			index += 2;
+			index += 1;
 		}
 		W_RX_Message[i] = byte;
 		byte = 0;
 	}
 }
 
+
+
+
+
+
+
+
 /** \brief	Function to check if a new message has arrived
  *
  *  \param	None
  *  \retval	1 (yes) / 0 (no)
  */
-uint8_t wired_control_NewRXMessageAvailable(void){
-	return IRclick_IsMessageReady();
-}
+//uint8_t wired_control_NewRXMessageAvailable(void){
+//	return IRclick_IsMessageReady();
+//}
 
 /** \brief	This function returns a pointer to the received IR-Message
  *

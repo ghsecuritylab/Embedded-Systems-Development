@@ -13,6 +13,9 @@ uint8_t CANFehler = 0;
 uint8_t ReglerFreigabe = 1;
 uint8_t Notbelueftung = 0;
 
+uint8_t CAN_Rx_flag;
+uint32_t timeout_cnt;
+
 float Drossel_eSum_d;
 float Druck_eSum_d;
 

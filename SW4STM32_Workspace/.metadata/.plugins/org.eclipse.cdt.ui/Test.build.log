@@ -1,0 +1,6 @@
+21:08:35 **** Build of configuration Debug for project Test ****
+make all 
+xcrun: error: invalid active developer path (/Library/Developer/CommandLineTools), missing xcrun at: /Library/Developer/CommandLineTools/usr/bin/xcrun
+
+21:08:35 Build Finished (took 181ms)
+

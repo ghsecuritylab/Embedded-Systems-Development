@@ -1,0 +1,456 @@
+/** \file
+ *  \brief
+ *
+ *
+ */
+
+/** \addtogroup Project
+ *  @{
+ */
+
+#include "Firmware_ProcessControl.h"
+
+//extern struct MikrobusSocket MB1;
+//extern struct MikrobusSocket MB2;
+//extern struct MikrobusSocket MB3;
+//extern struct MikrobusSocket MB4;
+//extern struct MikrobusSocket MB5;
+//extern struct MikrobusSocket MB6;
+//extern struct MikrobusSocket MB7;
+//extern struct MikrobusSocket MB8;
+
+extern uint8_t ClickBoardArrayCount;
+
+uint8_t KonfigMode = 1;
+
+uint32_t Counter = 0;
+
+uint8_t LOCK_RTC;
+RTC_Time System_Time;
+RTC_Date System_Date;
+
+
+uint16_t PulseCounter[9];
+union Data Test, Receive;
+
+struct clickBoard * Board_EXPAND_Taster;
+struct clickBoard * Board_EXPAND4_LED1;
+uint8_t output = 0;
+
+
+void Firmware_ProcessLogic_Init() {
+    //Initialisiere  UserButton
+    BSP_PB_Init(BUTTON_KEY,BUTTON_MODE_GPIO);
+
+    //Initialisierung Hardware- und Software
+    Firmware_Init_DataTypes();
+
+    Firmware_Init_LookUps();
+    Project_Init_LookUps();
+
+    Firmware_Init_Parameters();
+    Project_Init_Parameters();
+
+    Firmware_Init_RingMemories();
+    Project_Init_RingMemories();
+
+
+    ClickBoardArrayCount = 0;
+    Project_ProcessLogic_Init_Clickboards();
+
+    Init_ParamFlash();
+
+    Init_Mikrobus();
+    Init_MCUExt(0,0);
+    /* XXX 1 OneWire Init */
+    Init_OneWire();
+
+    /* XXX Panasonic IR Init */
+    PanasonicAC_IR_Init();
+
+    //RTC Initialisierung
+    RTC_Init();
+
+    HAL_StatusTypeDef ret = HAL_ERROR;
+    ret = RTC3click_Init();
+    if(ret == HAL_OK){
+    	RTC3click_Available = 1;
+    	RTC3click_SyncIntRTC();
+    }else{
+    	RTC3click_Available = 0;
+    }
+
+    Project_ProcessLogic_SafeStartUp();
+
+    //CAN_PinChecker();
+
+    CAN_Config(500);
+    CAN_recieve();
+    //Einlesen KonfigMode
+    KonfigMode = *I2C_IO_USER_GetKonfig();
+
+     /***********************
+    Zuordnung OneWire-Geräte - ggf. Error Increment
+    ************************/
+    /* XXX 2 OneWire Zuordnung */
+    uint8_t i;
+    for(i=0;i<ParameterGroup_OneWire.Count;i++) {
+        checkOneWireDevice_Parameter(ParameterGroup_OneWire.Para[i]);
+    }
+
+    Project_ProcessLogic_Init_Variables();
+
+    Project_ProcessLogic_Configure_Clickboards();
+
+
+   /* while(1) {
+        I2C_IO_USER_SetEXT(0,0,0);
+        HAL_Delay(1000);
+        I2C_IO_USER_SetEXT(0,0,1);
+        HAL_Delay(1000);
+        I2C_IO_USER_SetEXT(0,1,0);
+        HAL_Delay(1000);
+        I2C_IO_USER_SetEXT(0,1,1);
+        HAL_Delay(1000);
+        I2C_IO_USER_SetEXT(1,0,0);
+        HAL_Delay(1000);
+        I2C_IO_USER_SetEXT(1,0,1);
+        HAL_Delay(1000);
+        I2C_IO_USER_SetEXT(1,1,0);
+        HAL_Delay(1000);
+        I2C_IO_USER_SetEXT(1,1,1);
+        HAL_Delay(1000);
+
+
+
+    }*/
+
+    if (*Project_ProcessLogic_getError()) {
+        //Hardware-Fehler
+        I2C_IO_USER_SetBuzzer(12,44);
+        I2C_IO_USER_SetBuzzer(6,65);
+        I2C_IO_USER_SetBuzzer(6,87);
+        I2C_IO_USER_SetBuzzer(6,65);
+        I2C_IO_USER_SetBuzzer(18,87);
+
+        Machinestate = STATE_ERROR;
+    } else {
+        //Kein Hardware-Fehler
+        if (KonfigMode) {
+            //Melodie KonfigMode
+            I2C_IO_USER_SetBuzzer(12,44);
+            I2C_IO_USER_SetBuzzer(6,65);
+            I2C_IO_USER_SetBuzzer(6,87);
+            I2C_IO_USER_SetBuzzer(6,65);
+            I2C_IO_USER_SetBuzzer(18,87);
+
+            Machinestate = STATE_KONFIG;
+        } else {
+            //Melodie AutoMode
+            I2C_IO_USER_SetBuzzer(18,87);
+            I2C_IO_USER_SetBuzzer(18,44);
+            I2C_IO_USER_SetBuzzer(18,87);
+
+            Machinestate = STATE_AUTO;
+        }
+    }
+
+    Firmware_ProcessLogic_LED();
+}
+
+void Firmware_ProcessLogic_ReadInputs() {
+    //Einlesen KonfigMode
+    if ((Counter%200) == 0) {
+        //KonfigMode = *I2C_IO_USER_GetKonfig();
+    }
+
+    /* OneWire Firmware Read */
+    if (!LOCK_OneWire) {
+        //Request Temperatursensor
+        if ((Counter+0)%1000 == 0){
+        	DS1820_askTemp(ONEWIRE_ROM_GEHAEUSE.Value.ROM);
+        }
+
+        //Einlesen Temperatursensoren
+        if ((Counter+800)%1000 == 0) {
+            union Data Temp;
+            Temp = *DS18x20_readTemp(ONEWIRE_ROM_GEHAEUSE.Value.ROM);
+            RingMemory_Save(&TemperaturGehaeuse,&Temp);
+        }
+    }
+
+    if (!LOCK_RTC) {
+        if ((Counter+0)%1000 == 0) {
+            if (RTC3click_Available) {
+                RTC3click_getTime(&System_Time);
+                RTC3click_getDate(&System_Date);
+            } else {
+                RTC_getTime(&System_Time);
+                RTC_getDate(&System_Date);
+            }
+        }
+    }
+}
+
+void Firmware_ProcessLogic_WriteOutputs() {
+    if ((RTC3click_Available) & (Counter%1000 == 0)) {
+        uint8_t Nachricht[8];
+
+        Nachricht[0] = (System_Time.Seconds & 0b111111) << 2        | (System_Time.Minutes  & 0b111111)     >> 4;
+        Nachricht[1] = (System_Time.Minutes & 0b111111) << 4        | (System_Time.Hours    & 0b11111)      >> 1;
+        Nachricht[2] = (System_Time.Hours   & 0b11111)  << 7        | (System_Date.Date     & 0b11111)      << 2    | (System_Date.Month &  0b1111)     >> 2;
+        Nachricht[3] = (System_Date.Month   & 0b1111)   << 6        | (System_Date.Year     & 0b11111)      << 1    | 0;
+
+        uint32_t TempTime = RTC3click_convTimeDateto_UnixTime(&System_Time, &System_Date);
+
+        Nachricht[4] = (TempTime >> 24) & 0xFF;
+        Nachricht[5] = (TempTime >> 16) & 0xFF;
+        Nachricht[6] = (TempTime >> 8) & 0xFF;
+        Nachricht[7] = (TempTime >> 0) & 0xFF;
+
+        //CAN_send(0x730,1,10,8,Nachricht);
+    }
+
+//    if (IODevice_ID == 8) {
+//        Firmware_ProcessLogic_LED();
+//    }
+
+}
+
+void Firmware_ProcessLogic_CAN_Receive(CAN_HandleTypeDef *CanHandle) {
+    switch (CanHandle->pRxMsg->StdId) {
+        case 0x730:
+            if (RTC3click_Available) {
+                if (CanHandle->pRxMsg->Data[3] & 0b1) {
+                    //Externe CanNachricht vom Prüfstand zum Uhrzeit stellen
+                    RTC3click_setDate(&System_Date);
+                    RTC3click_setTime(&System_Time);
+                } else {
+                    //Andere Multibox sendet RTC3 Signal
+
+                    //Einigung wer sendet
+
+                    //ggf. Sendeprozess Deaktivierung man selbst
+
+                }
+            } else {
+                //Stelle interne RTC nach CAN-Referenz
+                System_Time.Seconds = (CanHandle->pRxMsg->Data[0] & 0b11111100) >> 2;
+                System_Time.Minutes = ((CanHandle->pRxMsg->Data[0] & 0b11) << 4) | ((CanHandle->pRxMsg->Data[1] & 0b11110000) >> 4);
+                System_Time.Hours = ((CanHandle->pRxMsg->Data[1] & 0b1111) << 1) | ((CanHandle->pRxMsg->Data[2] & 0b10000000)  >> 7);
+
+                System_Date.Date = ((CanHandle->pRxMsg->Data[2] & 0b1111100) >> 2);
+                System_Date.Month = ((CanHandle->pRxMsg->Data[2] &  0b11) << 2) | ((CanHandle->pRxMsg->Data[3]   & 0b11000000)   >> 6);
+                System_Date.Year = (CanHandle->pRxMsg->Data[3] & 0b111110) >> 1;
+
+                RTC_setDate(&System_Date);
+                RTC_setTime(&System_Time);
+
+            }
+
+            break;
+    }
+}
+
+void Firmware_ProcessLogic_MainTask() {
+    //SetMCUExt(1,0);
+
+    Firmware_ProcessLogic_WriteClickBoardConfig();
+
+    Firmware_ProcessLogic_ReadInputs();
+
+    Project_ProcessLogic_ReadInputs();
+
+    /*if (Counter%2000 == 0) {
+        union Data Temp;
+        Temp.d = RingMemory_getValasData(&TemperaturGehaeuse,0)->d;
+
+
+    }*/
+
+    /*uint8_t SendMessage[8];
+    SendMessage[0] = 0xAA;
+    SendMessage[1] = 0xBB;
+    CAN_send(0x40,1,500,2,SendMessage);*/
+
+
+    KonfigMode = 0;
+
+    /* XXX Machinestate */
+    //Machinestate = STATE_AUTO;
+
+    switch (Machinestate) {
+        //AutoMode
+        case STATE_AUTO:
+            if (KonfigMode) {
+                Machinestate = STATE_KONFIG;
+                Firmware_ProcessLogic_LED();
+            }
+
+            Project_ProcessLogic_Mode_Auto();
+
+            Project_ProcessLogic_WriteOutputs();
+            break;
+
+        //KonfigMode
+        case STATE_KONFIG:
+            if (!KonfigMode) {
+                Machinestate = STATE_AUTO;
+                Firmware_ProcessLogic_LED();
+            }
+
+            if (ParameterRead((&KONFIGMODE_OUTPUT), Value)) {
+                Project_ProcessLogic_WriteOutputs();
+            }
+
+            Project_ProcessLogic_Mode_Konfig();
+
+            break;
+
+        //FehlerbehandlungsMode
+        case STATE_ERROR:
+            Project_ProcessLogic_Mode_Error();
+
+            /*ProjectWriteOutputs();*/
+            break;
+
+    }
+
+
+//    	if(Counter%200 == 0)
+//        {
+//            AdapterBoard_Write();
+//        }
+
+        if(Counter % 500 == 0)
+        {
+            output ^= 1;
+            EXPAND4click_Select(Board_EXPAND4_LED1);
+            if(output == 1)
+            {
+                EXPAND4click_set(85);
+            }
+            else
+            {
+                EXPAND4click_set(0);
+                HAL_Delay(5000);
+
+            }
+        }
+
+
+    Counter++;
+
+    Firmware_ProcessLogic_WriteOutputs();
+    SetMCUExt(1,1);
+}
+
+void Firmware_ProcessLogic_LED() {
+    switch (Machinestate) {
+//        case STATE_KONFIG: I2C_IO_USER_SetLED(0,0,1); break;
+//        case STATE_AUTO: I2C_IO_USER_SetLED(0,1,0); break;
+//        case STATE_ERROR: I2C_IO_USER_SetLED(1,0,0); break;
+    }
+}
+
+void Firmware_ProcessLogic_WriteClickBoardConfig() {
+    uint8_t i, j;
+
+    for(i=0;i<ParameterGroup_ClickBoards.Count;i++) {
+        for(j=0;j<ParameterGroup_ClickBoards.ChildGroups[i]->Count;j++) {
+            if(ParameterGroup_ClickBoards.ChildGroups[i]->Para[j]->Changed) {
+                Update_Clickboard(ClickBoardArray[i]);
+                ParameterGroup_ClickBoards.ChildGroups[i]->Para[j]->Changed = 0;
+                break;
+            }
+        }
+    }
+}
+
+static float NewVal;
+float * ProjectPIController(uint16_t CycleTime, float KI, float KP, float SOLL, float IST, float * eSum) {
+    NewVal = 0;
+
+    float e = SOLL - IST;
+    float IVal, PVal;
+
+    //IST kann minimal Null sein
+    IST = (IST < 0) ? 0: IST;
+
+    //Berechnung Fehler-Summe ab zweitem Aufruf
+    *eSum = (Counter > 2 * CycleTime) ? *eSum + e : 0;
+
+    //Berechnung I-Anteil und P-Anteil
+    IVal = KI * CycleTime / 1000 * *eSum;
+    PVal = KP * e ;
+
+    NewVal = IVal + PVal;
+
+    //Korrektur untere Grenze
+    if ((NewVal < 0) | (SOLL == 0)) {
+        NewVal = 0;
+        //Drossel_eSum_d = 0;
+    }
+
+    //Korrektur obere Grenze
+    if ((NewVal > 100) | (SOLL == 100)) {
+        NewVal = 100;
+    }
+
+
+    return &NewVal;
+}
+
+static float NewVal;
+float * ProjectPIDController(uint16_t CycleTime, float KI, float KP, float KD, float SOLL, float IST, float IST_1, float * eSum, uint8_t Invers) {
+    NewVal = 0;
+
+    float e = SOLL - IST;
+    float e1 = SOLL - IST_1;
+
+    if (Invers) {
+        e = -e;
+        e1 = -e1;
+    }
+
+    float Ta = ((float) CycleTime / 1000);
+
+    float IVal = 0, PVal = 0, DVAL = 0;
+
+    //IST kann minimal Null sein
+    IST = (IST < 0) ? 0: IST;
+
+    //Berechnung Fehler-Summe ab zweitem Aufruf
+    *eSum = (Counter > 2 * CycleTime) ? *eSum + e : 0;
+
+    //Berechnung I-Anteil und P-Anteil
+    if (KI > 0) IVal = KI *  Ta * *eSum;
+    if (KP > 0) PVal = KP * e ;
+    if (KD > 0) DVAL = KD * (e-e1) / Ta;
+
+    NewVal = IVal + PVal + DVAL;
+
+    //Korrektur untere Grenze
+    if ((NewVal < 0)) {
+        NewVal = 0;
+        //Keine Aufintegrierung mehr wenn 0% erreicht sind.
+        *eSum = *eSum - e;
+        //Drossel_eSum_d = 0;
+    }
+
+    //Korrektur obere Grenze
+    if ((NewVal > 100)) {
+        NewVal = 100;
+        //Keine Aufintegrierung mehr wenn 100% erreicht sind.
+        *eSum = *eSum - e;
+    }
+
+    return &NewVal;
+}
+
+
+void Firmware_ProcessLogic_ErrorHandler(uint8_t ErrorType) {
+
+
+
+}

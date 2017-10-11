@@ -1,0 +1,53 @@
+11:44:58 **** Incremental Build of configuration Debug for project STM32746G_DISCOVERY ****
+make all 
+'Building file: ../Application/User/Project/Project_Processlogic.c'
+'Invoking: MCU GCC Compiler'
+D:\Workspace\MultiBox_KlimaKSB\SW4STM32_Workspace\STM32746G_DISCOVERY\Debug
+arm-none-eabi-gcc -mcpu=cortex-m7 -mthumb -mfloat-abi=hard -mfpu=fpv5-sp-d16 -DUSE_HAL_DRIVER -DSTM32F746xx -DUSE_STM32746G_DISCOVERY -I"D:/Workspace/MultiBox_Konditionierung/STM32Cube_FW_F7_AKT/Drivers/CMSIS/Device/ST/STM32F7xx/Include" -I"D:/Workspace/MultiBox_Konditionierung/STM32Cube_FW_F7_AKT/Drivers/CMSIS/Include" -I"D:/Workspace/MultiBox_Konditionierung/STM32Cube_FW_F7_AKT/Drivers/STM32F7xx_HAL_Driver/Inc" -I"D:/Workspace/MultiBox_Konditionierung/STM32Cube_FW_F7_AKT/Drivers/BSP/STM32746G-Discovery" -I"D:/Workspace/MultiBox_Konditionierung/STM32Cube_FW_F7_AKT/Drivers/BSP/Components/Common" -I"D:/Workspace/MultiBox_Konditionierung/STM32Cube_FW_F7_AKT/Drivers/BSP/Components" -I"D:/Workspace/MultiBox_Konditionierung/STM32Cube_FW_F7_AKT/Middlewares/ST/STemWin/inc" -I"D:/Workspace/MultiBox_Konditionierung/STM32Cube_FW_F7_AKT/Utilities" -I"D:/Workspace/MultiBox_Konditionierung/STM32Cube_FW_F7_AKT/Utilities/Fonts" -I"D:/Workspace/MultiBox_Konditionierung/STM32Cube_FW_F7_AKT/Middlewares/Third_Party/FatFs/src" -I"D:/Workspace/MultiBox_Konditionierung/STM32Cube_FW_F7_AKT/Middlewares/Third_Party/FatFs/src/drivers" -I"D:/Workspace/MultiBox_KlimaKSB/SW4STM32_Workspace/STM32746G_DISCOVERY/Application/User/Driver/AdapterBoard" -I"D:/Workspace/MultiBox_KlimaKSB/SW4STM32_Workspace/STM32746G_DISCOVERY/Application/User/Driver/Click boards" -I"D:/Workspace/MultiBox_KlimaKSB/SW4STM32_Workspace/STM32746G_DISCOVERY/Application/User/Driver/Communication" -I"D:/Workspace/MultiBox_KlimaKSB/SW4STM32_Workspace/STM32746G_DISCOVERY/Application/User/Driver/SD-Card" -I"D:/Workspace/MultiBox_KlimaKSB/SW4STM32_Workspace/STM32746G_DISCOVERY/Application/User/GUI-Interface/Dialogs" -I"D:/Workspace/MultiBox_KlimaKSB/SW4STM32_Workspace/STM32746G_DISCOVERY/Application/User/GUI-Interface/Header" -I"D:/Workspace/MultiBox_KlimaKSB/SW4STM32_Workspace/STM32746G_DISCOVERY/Application/User/GUI-Interface/Icons" -I"D:/Workspace/MultiBox_KlimaKSB/SW4STM32_Workspace/STM32746G_DISCOVERY/Application/User/GUI-Interface/Layout" -I"D:/Workspace/MultiBox_KlimaKSB/SW4STM32_Workspace/STM32746G_DISCOVERY/Application/User/GUI-Interface/Loading Screen" -I"D:/Workspace/MultiBox_KlimaKSB/SW4STM32_Workspace/STM32746G_DISCOVERY/Application/User/GUI-Interface/Menu" -I"D:/Workspace/MultiBox_KlimaKSB/SW4STM32_Workspace/STM32746G_DISCOVERY/Application/User/GUI-Interface" -I"D:/Workspace/MultiBox_KlimaKSB/SW4STM32_Workspace/STM32746G_DISCOVERY/Application/User/Main/STemWin-Conf" -I"D:/Workspace/MultiBox_KlimaKSB/SW4STM32_Workspace/STM32746G_DISCOVERY/Application/User/Main" -I"D:/Workspace/MultiBox_KlimaKSB/SW4STM32_Workspace/STM32746G_DISCOVERY/Application/User/Memory/Data" -I"D:/Workspace/MultiBox_KlimaKSB/SW4STM32_Workspace/STM32746G_DISCOVERY/Application/User/Memory/Lookup" -I"D:/Workspace/MultiBox_KlimaKSB/SW4STM32_Workspace/STM32746G_DISCOVERY/Application/User/Memory/Parameter" -I"D:/Workspace/MultiBox_KlimaKSB/SW4STM32_Workspace/STM32746G_DISCOVERY/Application/User/Memory/RingMemory" -I"D:/Workspace/MultiBox_KlimaKSB/SW4STM32_Workspace/STM32746G_DISCOVERY/Application/User/Project/Pages" -I"D:/Workspace/MultiBox_KlimaKSB/SW4STM32_Workspace/STM32746G_DISCOVERY/Application/User/Project" -I"D:/Workspace/MultiBox_KlimaKSB/SW4STM32_Workspace/STM32746G_DISCOVERY/Drivers/BSP/Components/ft5336" -I"D:/Workspace/MultiBox_KlimaKSB/SW4STM32_Workspace/STM32746G_DISCOVERY/Application/User/Memory" -I"D:/Workspace/MultiBox_KlimaKSB/SW4STM32_Workspace/STM32746G_DISCOVERY/Application/User/Driver" -I"D:/Workspace/MultiBox_KlimaKSB/SW4STM32_Workspace/STM32746G_DISCOVERY/Application/User/Driver/1Wire-Devices" -I"D:/Workspace/MultiBox_KlimaKSB/SW4STM32_Workspace/STM32746G_DISCOVERY/Application/User/Firmware" -I"D:/Workspace/MultiBox_KlimaKSB/SW4STM32_Workspace/STM32746G_DISCOVERY/Application/User/Firmware/Functions" -I"D:/Workspace/MultiBox_KlimaKSB/SW4STM32_Workspace/STM32746G_DISCOVERY/Application/User/Firmware/Pages" -I"D:/Workspace/MultiBox_KlimaKSB/SW4STM32_Workspace/STM32746G_DISCOVERY/Application/User/Driver/RTC"  -O0 -g3 -Wall -fmessage-length=0 -ffunction-sections -c -fmessage-length=0 -MMD -MP -MF"Application/User/Project/Project_Processlogic.d" -MT"Application/User/Project/Project_Processlogic.o" -o "Application/User/Project/Project_Processlogic.o" "../Application/User/Project/Project_Processlogic.c"
+../Application/User/Project/Project_Processlogic.c: In function 'Project_ProcessLogic_ReadInputs':
+../Application/User/Project/Project_Processlogic.c:141:16: warning: unused variable 'temp' [-Wunused-variable]
+          float temp;
+                ^
+../Application/User/Project/Project_Processlogic.c: In function 'Project_ProcessLogic_CAN_Receive':
+../Application/User/Project/Project_Processlogic.c:229:16: warning: unused variable 'Receive' [-Wunused-variable]
+     union Data Receive;
+                ^
+In file included from D:/Workspace/MultiBox_KlimaKSB/SW4STM32_Workspace/STM32746G_DISCOVERY/Application/User/Driver/AdapterBoard/AdapterBoard_I2C_IOs.h:5:0,
+                 from D:/Workspace/MultiBox_KlimaKSB/SW4STM32_Workspace/STM32746G_DISCOVERY/Application/User/Driver/Communication/1WIRE-Driver.h:70,
+                 from D:/Workspace/MultiBox_KlimaKSB/SW4STM32_Workspace/STM32746G_DISCOVERY/Application/User/Driver/DriverConf.h:6,
+                 from ../Application/User/Project/Project_Processlogic.h:3,
+                 from ../Application/User/Project/Project_Processlogic.c:12:
+../Application/User/Project/Project_Processlogic.c: At top level:
+D:/Workspace/MultiBox_KlimaKSB/SW4STM32_Workspace/STM32746G_DISCOVERY/Application/User/Driver/AdapterBoard/AdapterBoard_MikrobusSocket.h:41:32: warning: 'MB_Array' defined but not used [-Wunused-variable]
+ static struct MikrobusSocket * MB_Array[8] = {&MB1,&MB2,&MB3,&MB4,&MB5,&MB6,&MB7,&MB8};
+                                ^
+In file included from D:/Workspace/MultiBox_KlimaKSB/SW4STM32_Workspace/STM32746G_DISCOVERY/Application/User/GUI-Interface/Menu/MenuView.h:26:0,
+                 from D:/Workspace/MultiBox_KlimaKSB/SW4STM32_Workspace/STM32746G_DISCOVERY/Application/User/GUI-Interface/GUIControl.h:18,
+                 from D:/Workspace/MultiBox_KlimaKSB/SW4STM32_Workspace/STM32746G_DISCOVERY/Application/User/GUI-Interface/Dialogs/Parameters_Edit.h:9,
+                 from D:/Workspace/MultiBox_KlimaKSB/SW4STM32_Workspace/STM32746G_DISCOVERY/Application/User/Memory/Parameter/Parameter.h:8,
+                 from D:/Workspace/MultiBox_KlimaKSB/SW4STM32_Workspace/STM32746G_DISCOVERY/Application/User/Memory/RingMemory/RingMemory.h:8,
+                 from D:/Workspace/MultiBox_KlimaKSB/SW4STM32_Workspace/STM32746G_DISCOVERY/Application/User/Memory/MemoryStructures.h:4,
+                 from D:/Workspace/MultiBox_KlimaKSB/SW4STM32_Workspace/STM32746G_DISCOVERY/Application/User/Driver/AdapterBoard/AdapterBoard_CAN.h:5,
+                 from D:/Workspace/MultiBox_KlimaKSB/SW4STM32_Workspace/STM32746G_DISCOVERY/Application/User/Driver/DriverConf.h:11,
+                 from ../Application/User/Project/Project_Processlogic.h:3,
+                 from ../Application/User/Project/Project_Processlogic.c:12:
+D:/Workspace/MultiBox_KlimaKSB/SW4STM32_Workspace/STM32746G_DISCOVERY/Application/User/GUI-Interface/Header/Navigationpanel.h:42:31: warning: 'aDialogCreate_Header' defined but not used [-Wunused-variable]
+ static GUI_WIDGET_CREATE_INFO aDialogCreate_Header[2+HEADER_MAX_ELEMENTS] = {
+                               ^
+'Finished building: ../Application/User/Project/Project_Processlogic.c'
+' '
+'Building target: STM32746G_DISCOVERY.elf'
+'Invoking: MCU GCC Linker'
+arm-none-eabi-gcc -mcpu=cortex-m7 -mthumb -mfloat-abi=hard -mfpu=fpv5-sp-d16 -L"D:\Workspace\MultiBox_Konditionierung\STM32Cube_FW_F7_AKT/Middlewares/ST/STemWin/Lib" -specs=nosys.specs -specs=nano.specs -u _printf_float -T"../STM32F746NGHx_FLASH.ld" -Wl,-Map=output.map -Wl,--gc-sections -lm -o "STM32746G_DISCOVERY.elf" @"objects.list"  -l:STemWin532_CM7_GCC.a
+'Finished building target: STM32746G_DISCOVERY.elf'
+' '
+make --no-print-directory post-build
+'Generating binary and Printing size information:'
+arm-none-eabi-objcopy -O binary "STM32746G_DISCOVERY.elf" "STM32746G_DISCOVERY.bin"
+arm-none-eabi-size "STM32746G_DISCOVERY.elf"
+   text	   data	    bss	    dec	    hex	filename
+ 418988	   8660	 230400	 658048	  a0a80	STM32746G_DISCOVERY.elf
+' '
+
+11:45:03 Build Finished (took 4s.638ms)
+

@@ -1,0 +1,374 @@
+#include "PanasonicAC_IR.h"
+#include "stdint.h"
+#include "IRclick.h"
+
+/* Private typedef -----------------------------------------------------------*/
+/* Private define ------------------------------------------------------------*/
+// IR Header: 0x4000148125
+#define PANASONIC_AC_ID1    0x40U
+#define PANASONIC_AC_ID2    0x00U
+#define PANASONIC_AC_ID3    0x14U
+#define PANASONIC_AC_ID4    0x81U
+#define PANASONIC_AC_ID5    0x25U
+
+/* IR Pulse Time in us */
+#define PANASONIC_AC_START_PULSE    3400U
+#define PANASONIC_AC_START_PAUSE    1700U
+#define PANASONIC_AC_BIT_PULSE       455U
+#define PANASONIC_AC_LOW_PAUSE       380U
+#define PANASONIC_AC_HIGH_PAUSE     1200U
+
+#define PULSE_LENGTH_MAX    196
+
+/* Private macro -------------------------------------------------------------*/
+
+/* Private variables ---------------------------------------------------------*/
+Panasonic_AC_Config_t Panasonic_AC_Config;
+Panasonic_AC_ConfigStrings_t Panasonic_AC_ConfigStrings;
+static uint16_t IR_Message_Pulses[PULSE_LENGTH_MAX] = {0};
+uint8_t IR_RX_Message[12] = {0};
+uint8_t IR_TX_Message[12] = {PANASONIC_AC_ID1,
+                                 PANASONIC_AC_ID2,
+                                 PANASONIC_AC_ID3,
+                                 PANASONIC_AC_ID4,
+                                 PANASONIC_AC_ID5,
+                                 0,                         // Byte 6: On/Off, FanSpeed, [7:8] - Mode[1:0]
+                                 0,                         // Byte 7:  [7] - Mode[2], [5:1] - Temperature
+                                 0x68,                      // Byte 8:  Measured Temperature
+                                 0,                         // Byte 9:  0x00
+                                 0,                         // Byte 10: 0x00
+                                 0,                         // Byte 11: AirDirection[2:0]
+                                 0                          // Byte 12: Checksum
+                                };
+
+/* Private function prototypes -----------------------------------------------*/
+static void PanasonicAC_ConvertToPulses(uint8_t *Message);
+static uint8_t PanasonicAC_CalcChecksum(uint8_t *Message);
+static void PanasonicAC_ConvertPulsesToBits(void);
+
+/* Private functions ---------------------------------------------------------*/
+
+/** \brief	Initialize the local AC configuration
+ *
+ *  \param	None
+ *  \retval	None
+ */
+void PanasonicAC_IR_Init(void){
+	IRclick_Init();
+    PanasonicAC_SetMode(Mode_Auto);
+    PanasonicAC_SetTemp(Temp_20C);
+    PanasonicAC_SetFanSpeed(Fan_Auto);
+    PanasonicAC_SetAirDir(AirDir_Swing);
+    PanasonicAC_ConvertToPulses(IR_TX_Message);
+
+}
+
+/** \brief	Sets the AC mode in the local configuration
+ *
+ *  \param	PanasonicAC_Mode mode
+ *  \retval	None
+ */
+void PanasonicAC_SetMode(PanasonicAC_Mode mode){
+    /* Bits löschen */
+    IR_TX_Message[5] &= ~0xC0;
+    IR_TX_Message[6] &= ~0x80;
+    /* Neue Konfiguration setzen */
+    IR_TX_Message[5] |= (0xC0 & (mode<<6));
+    IR_TX_Message[6] |= (0x80 & (mode<<5));
+    Panasonic_AC_Config.Mode = mode;
+    switch(mode){
+        case Mode_Heat:
+            Panasonic_AC_ConfigStrings.Mode = "Heizen";
+            break;
+        case Mode_Dry:
+            Panasonic_AC_ConfigStrings.Mode = "Trocknen";
+            break;
+        case Mode_Cool:
+            Panasonic_AC_ConfigStrings.Mode = "Kühlen";
+            break;
+        case Mode_Fan:
+            Panasonic_AC_ConfigStrings.Mode = "Lüfter";
+            break;
+        case Mode_Auto:
+            Panasonic_AC_ConfigStrings.Mode = "Auto";
+            break;
+        default:
+            break;
+    }
+}
+
+/** \brief	Sets the AC temperature in the local configuration
+ *
+ *  \param	PanasonicAC_Temperature temp
+ *  \retval	None
+ */
+void PanasonicAC_SetTemp(PanasonicAC_Temperature temp){
+    /* Bits löschen */
+    IR_TX_Message[6] &= ~0x3E;
+    /* Neue Konfiguration setzen */
+    IR_TX_Message[6] |= (0x3E & (temp<<1));
+    Panasonic_AC_Config.Temperatur = temp;
+    switch(temp){
+        case Temp_16C:
+            Panasonic_AC_ConfigStrings.Temperatur = "16°C";
+            break;
+        case Temp_17C:
+            Panasonic_AC_ConfigStrings.Temperatur = "17°C";
+            break;
+        case Temp_18C:
+            Panasonic_AC_ConfigStrings.Temperatur = "18°C";
+            break;
+        case Temp_19C:
+            Panasonic_AC_ConfigStrings.Temperatur = "19°C";
+            break;
+        case Temp_20C:
+            Panasonic_AC_ConfigStrings.Temperatur = "20°C";
+            break;
+        case Temp_21C:
+            Panasonic_AC_ConfigStrings.Temperatur = "21°C";
+            break;
+        case Temp_22C:
+            Panasonic_AC_ConfigStrings.Temperatur = "22°C";
+            break;
+        case Temp_23C:
+            Panasonic_AC_ConfigStrings.Temperatur = "23°C";
+            break;
+        case Temp_24C:
+            Panasonic_AC_ConfigStrings.Temperatur = "24°C";
+            break;
+        case Temp_25C:
+            Panasonic_AC_ConfigStrings.Temperatur = "25°C";
+            break;
+        case Temp_26C:
+            Panasonic_AC_ConfigStrings.Temperatur = "26°C";
+            break;
+        case Temp_27C:
+            Panasonic_AC_ConfigStrings.Temperatur = "27°C";
+            break;
+        case Temp_28C:
+            Panasonic_AC_ConfigStrings.Temperatur = "28°C";
+            break;
+        case Temp_29C:
+            Panasonic_AC_ConfigStrings.Temperatur = "29°C";
+            break;
+        case Temp_30C:
+            Panasonic_AC_ConfigStrings.Temperatur = "30°C";
+            break;
+        default:
+            break;
+    }
+}
+
+/** \brief	Sets the fan speed in the local configuration
+ *
+ *  \param	PanasonicAC_FanSpeed fanspeed
+ *  \retval	None
+ */
+void PanasonicAC_SetFanSpeed(PanasonicAC_FanSpeed fanspeed){
+    /* Bits löschen */
+    IR_TX_Message[5] &= ~0x0C;
+    /* Neue Konfiguration setzen */
+    IR_TX_Message[5] |= (0x0C & (fanspeed<<2));
+    Panasonic_AC_Config.FanSpeed = fanspeed;
+    switch(fanspeed){
+        case Fan_Auto:
+            Panasonic_AC_ConfigStrings.FanSpeed = "Auto";
+            break;
+        case Fan_Hi:
+            Panasonic_AC_ConfigStrings.FanSpeed = "Hoch";
+            break;
+        case Fan_Med:
+            Panasonic_AC_ConfigStrings.FanSpeed = "Mittel";
+            break;
+        case Fan_Lo:
+            Panasonic_AC_ConfigStrings.FanSpeed = "Niedrig";
+            break;
+        default:
+            break;
+    }
+}
+
+/** \brief	Sets the air direction in the local configuration
+ *
+ *  \param	PanasonicAC_AirDir airdir
+ *  \retval	None
+ */
+void PanasonicAC_SetAirDir(PanasonicAC_AirDir airdir){
+    /* Bits löschen */
+    IR_TX_Message[10] &= ~0x07;
+    /* Neue Konfiguration setzen */
+    IR_TX_Message[10] |= (0x07 & airdir);
+    Panasonic_AC_Config.AirDirection = airdir;
+    switch(airdir){
+        case AirDir_0:
+            Panasonic_AC_ConfigStrings.AirDirection = "0° (Horizontal)";
+            break;
+        case AirDir_1:
+            Panasonic_AC_ConfigStrings.AirDirection = "22,5°";
+            break;
+        case AirDir_2:
+            Panasonic_AC_ConfigStrings.AirDirection = "45°";
+            break;
+        case AirDir_3:
+            Panasonic_AC_ConfigStrings.AirDirection = "67,5°";
+            break;
+        case AirDir_4:
+            Panasonic_AC_ConfigStrings.AirDirection = "90° (Vertical)";
+            break;
+        case AirDir_Swing:
+            Panasonic_AC_ConfigStrings.AirDirection = "Swing";
+            break;
+        case AirDir_Stop:
+            Panasonic_AC_ConfigStrings.AirDirection = "Stop";
+            break;
+        default:
+            break;
+    }
+}
+
+/** \brief	Sends the local configuration to the AC unit via infrared
+ *
+ *  \param	None
+ *  \retval	None
+ */
+void PanasonicAC_SendIRMessage(void){
+    IR_TX_Message[11] = PanasonicAC_CalcChecksum(IR_TX_Message);
+    PanasonicAC_ConvertToPulses(IR_TX_Message);
+    IRclick_Send(IR_Message_Pulses, PULSE_LENGTH_MAX);
+}
+
+/** \brief	Sends the local configuration with Power-On-bit to the AC unit via infrared
+ *
+ *  \param	None
+ *  \retval	None
+ */
+void PanasonicAC_PowerOn(void){
+    /* Bits löschen */
+    IR_TX_Message[5] &= ~0x03;
+    /* Neue Konfiguration setzen */
+    IR_TX_Message[5] |= (0x03 & Power_On);
+    /* Send Message */
+    PanasonicAC_SendIRMessage();
+    //PanasonicAC_ConvertToPulses(IR_Message_ON);
+    //IRclick_Send(IR_Message_Pulses, PULSE_LENGTH_MAX);
+    /* Bits wieder löschen */
+    IR_TX_Message[5] &= ~0x03;
+}
+
+/** \brief	Sends the local configuration with Power-Off-bit to the AC unit via infrared
+ *
+ *  \param	None
+ *  \retval	None
+ */
+void PanasonicAC_PowerOff(void){
+    /* Bits löschen */
+    IR_TX_Message[5] &= ~0x03;
+    /* Neue Konfiguration setzen */
+    IR_TX_Message[5] |= (0x03 & Power_Off);
+    /* Send Message */
+    PanasonicAC_SendIRMessage();
+    //PanasonicAC_ConvertToPulses(IR_Message_OFF);
+    //IRclick_Send(IR_Message_Pulses, PULSE_LENGTH_MAX);
+    /* Bits wieder löschen */
+    IR_TX_Message[5] &= ~0x03;
+}
+
+/** \brief	Converts the Hex-Message into pulses
+ *
+ *  \param	uint8_t *Message: Pointer to Hex-Message which will be converted
+ *  \retval	None
+ */
+static void PanasonicAC_ConvertToPulses(uint8_t *Message){
+    IR_Message_Pulses[0] = PANASONIC_AC_START_PULSE;
+    IR_Message_Pulses[1] = PANASONIC_AC_START_PAUSE;
+    uint8_t nByte;
+    int8_t nBit;
+    uint16_t nPulse = 2;
+    for(nByte = 0; nByte < 12; nByte++){
+        for(nBit = 0; nBit < 8; nBit++){
+            if(Message[nByte] & (0x1 << nBit)){
+                IR_Message_Pulses[nPulse++] = PANASONIC_AC_BIT_PULSE;
+                IR_Message_Pulses[nPulse++] = PANASONIC_AC_HIGH_PAUSE;
+            }else{
+                IR_Message_Pulses[nPulse++] = PANASONIC_AC_BIT_PULSE;
+                IR_Message_Pulses[nPulse++] = PANASONIC_AC_LOW_PAUSE;
+            }
+        }
+    }
+    IR_Message_Pulses[nPulse++] = PANASONIC_AC_BIT_PULSE;
+}
+
+/** \brief	Calculates the Checksum (Byte 12) from Byte 1 to 11
+ *
+ *  \param	Pointer to the Message which will be calculated
+ *  \retval	uint8_t Checksum
+ */
+static uint8_t PanasonicAC_CalcChecksum(uint8_t *Message){
+    uint8_t checksum = 0;
+    for(size_t index = 0; index < 11; ++index){
+        checksum += (Message[index] >> 4) + (Message[index] & 0x0F);
+    }
+    return checksum - 8;
+}
+
+/** \brief	Converts the received Pulselength into Bytes
+ *
+ *  \param	None
+ *  \retval	None
+ */
+static void PanasonicAC_ConvertPulsesToBits(void){
+	uint16_t *pRX_Pulse_Buffer = IRclick_GetRXMessagePulseBuffer();
+	uint8_t index = 3;
+	uint8_t byte = 0;
+	for(int i = 0; i<12; i++){
+		for(int j = 0; j<8; j++){
+			if(pRX_Pulse_Buffer[index] > 40){
+				byte |= 1<<j;
+			}
+			index += 2;
+		}
+		IR_RX_Message[i] = byte;
+		byte = 0;
+	}
+}
+
+/** \brief	Function to check if a new message has arrived
+ *
+ *  \param	None
+ *  \retval	1 (yes) / 0 (no)
+ */
+uint8_t PanasonicAC_NewRXMessageAvailable(void){
+	return IRclick_IsMessageReady();
+}
+
+/** \brief	This function returns a pointer to the received IR-Message
+ *
+ *  \param	None
+ *  \retval	Pointer to the IR-Message
+ */
+uint8_t * PanasonicAC_GetRXMessage(void){
+	PanasonicAC_ConvertPulsesToBits();
+	return IR_RX_Message;
+}
+
+/** \brief	This function fills an char-array with the IR-Message
+ *
+ *  \param	char array in which the message is stored as ASCII
+ *  \retval	None
+ */
+void PanasonicAC_GetRXMessageAsString(char * message){
+	PanasonicAC_ConvertPulsesToBits();
+	sprintf(message, "%02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X",
+			IR_RX_Message[0],
+			IR_RX_Message[1],
+			IR_RX_Message[2],
+			IR_RX_Message[3],
+			IR_RX_Message[4],
+			IR_RX_Message[5],
+			IR_RX_Message[6],
+			IR_RX_Message[7],
+			IR_RX_Message[8],
+			IR_RX_Message[9],
+			IR_RX_Message[10],
+			IR_RX_Message[11]);
+}

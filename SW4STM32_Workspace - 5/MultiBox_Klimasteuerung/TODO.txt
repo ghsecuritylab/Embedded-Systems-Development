@@ -1,0 +1,8 @@
+Temperatursteuerung
+ - Temperaturen von Motoröl usw über CAN empfangen und in Prozess einbinden
+ - gesendete CAN Nachrichten testen
+ 
+Graph
+ - RingMemory Anbindung debuggen
+ 	- Überlauf??
+ 	
